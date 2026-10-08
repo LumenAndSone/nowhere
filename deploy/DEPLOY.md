@@ -1,23 +1,28 @@
-# Nowhere: VPS + Tailscale Funnel staging plan
+# Nowhere production deployment status (2026-10-08)
 
-This repository contains only a prepared candidate. **It is not deployed to the VPS.**
+> The earlier Tailscale Funnel instructions in this folder were a **superseded staging proposal**. Tailscale was not installed in production. Do not execute the old `deploy/compose.yaml` as a second production stack.
 
-## Design
-- Existing native Python tools and datasets run in a non-root, read-only Docker container.
-- `NOWHERE_HOME` is persisted to a Docker named volume.
-- A second container runs Tailscale in userspace mode, without changing the host SSH service or opening host ports.
-- FastMCP GitHub OAuth and a single-login allowlist protect all MCP tools.
-- Public URL: `https://<device>.<tailnet>.ts.net/mcp` (actual name obtained on setup).
+## Running on VPS (verified in a Codex handoff)
 
-## Required follow-up
-1. Build image and locally verify imported tools and unauthorized 401 responses.
-2. Ensure enough memory on existing Tencent VPS; don't modify ears.
-3. Install/start Tailscale sidecar, sign in to Tailscale, obtain HTTPS name, **leave Funnel disabled**.
-4. Register a GitHub OAuth App for the FastMCP callback URL after checking exact metadata path. Never paste secret in chat.
-5. Fill a git-ignored `deploy/.env` with:
-   `NOWHERE_PUBLIC_URL`, `NOWHERE_GITHUB_LOGIN`, `NOWHERE_GITHUB_CLIENT_ID`, `NOWHERE_GITHUB_CLIENT_SECRET`, `NOWHERE_AUTH_SIGNING_KEY`.
-6. Start Nowhere, verify authentication/discovery and denied requests in private network.
-7. Enable public ingress using Tailscale `funnel --bg --https=443 http://nowhere:8765`.
-8. Verify real authenticated tool calls and journey persistence across restart; then replace the ChatGPT plugin.
+- Git source: `LumenAndSone/nowhere`, branch `feature/cloudflare-mcp-assessment`, commit `513d0f2`.
+- Isolated production project path: `/opt/nowhere-mcp-isolated` with its **own Codex-reviewed** `compose.yaml`.
+- Compose project: `nowhere-isolated`; service: `nowhere`.
+- Docker network: `nowhere_isolated_net`; internal MCP: `http://nowhere:8765/mcp`.
+- Host port 8765 remains closed. Source Bearer token is stored only in `secrets/origin_token`, owned by the VPS and not present in Git.
+- Docker persisted travel volume: `nowhere_isolated_journeys`.
+- 28 tools, initial journey/walk/query, restoration on restart and missing/invalid Bearer 401 were tested by Codex.
+- Existing ears and A-Zhi services and infrastructure were preserved.
 
-Do not enable Funnel before OAuth and allowlist have passed tests. GitHub OAuth client registrations/token storage across restarts still need verification. This is a candidate, **not a production-validated service**. Cloudflare credentials and old plugins are unrelated and untouched.
+## Current gateway design
+
+ChatGPT → isolated `nowhere-mcp-gateway` Cloudflare Worker → `NOWHERE_VPC` binding → dedicated Cloudflare Tunnel → `http://nowhere:8765/mcp` on the isolated VPS Docker network.
+
+The Worker hosts GitHub OAuth 2.1 for ChatGPT and requires the owner’s GitHub **login and numeric ID**. It injects the source Bearer only after successful OAuth. The source token must not be sent to the client.
+
+See [the Cloudflare gateway README](../cloudflare/nowhere-gateway/README.md) for resource IDs, OAuth app callback, Worker secrets, and unfinished checks. The Cloudflare Tunnel sidecar is staged but has not been started; the Worker OAuth and end-to-end flows are not yet operational.
+
+## Boundaries
+
+Do not touch A-Zhi’s original tunnel, existing Cloudflare Workers, ears, SSH, firewalls, Nginx or existing Docker projects. Do not start a second Tailscale service. Do not store tokens in this repository, chat or logs.
+
+**The currently committed `deploy/compose.yaml` is an historical candidate, not the VPS production compose.** For any further VPS commands, use `/opt/nowhere-mcp-isolated/compose.yaml` as the sole source of truth and obtain its current state from Codex first.

@@ -1,0 +1,16 @@
+{
+  "name": "nowhere-mcp-gateway",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dry-run": "wrangler deploy --dry-run",
+    "dev": "wrangler dev"
+  },
+  "dependencies": {
+    "@cloudflare/workers-oauth-provider": "^1.2.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.148.0"
+  }
+}

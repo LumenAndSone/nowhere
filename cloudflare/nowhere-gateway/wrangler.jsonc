@@ -1,0 +1,29 @@
+{
+  "name": "nowhere-mcp-gateway",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-08",
+  "workers_dev": true,
+  "compatibility_flags": [
+    "global_fetch_strictly_public"
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "OAUTH_KV",
+      "id": "20618a9559974128a092d51d579447b4"
+    }
+  ],
+  "vpc_services": [
+    {
+      "binding": "NOWHERE_VPC",
+      "service_id": "01a11a88-4cc0-7502-b070-d532daf55aa5",
+      "remote": true
+    }
+  ],
+  "observability": {
+    "enabled": false
+  },
+  "vars": {
+    "ALLOWED_GITHUB_LOGIN": "LumenAndSone",
+    "ALLOWED_GITHUB_ID": "232188286"
+  }
+}
