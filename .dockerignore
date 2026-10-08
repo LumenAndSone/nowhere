@@ -1,0 +1,16 @@
+.git
+.venv
+.venv*/
+.cf-probe
+node_modules
+content_src
+tools
+**/__pycache__
+**/*.pyc
+**/.env
+**/*.secret
+**/*.key
+**/oauth*.json
+*.log
+package-lock.json
+package.json

@@ -1,0 +1,40 @@
+services:
+  nowhere:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    read_only: true
+    tmpfs: ["/tmp:rw,nosuid,nodev,size=64m"]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    mem_limit: 768m
+    cpus: 1.0
+    environment:
+      NOWHERE_HOME: /data
+      NOWHERE_PUBLIC_URL: ${NOWHERE_PUBLIC_URL:?Set Tailscale URL}
+      NOWHERE_GITHUB_LOGIN: ${NOWHERE_GITHUB_LOGIN:?Set GitHub user}
+      NOWHERE_GITHUB_CLIENT_ID: ${NOWHERE_GITHUB_CLIENT_ID:?Set GitHub OAuth client ID}
+      NOWHERE_GITHUB_CLIENT_SECRET: ${NOWHERE_GITHUB_CLIENT_SECRET:?Set GitHub OAuth client secret}
+      NOWHERE_AUTH_SIGNING_KEY: ${NOWHERE_AUTH_SIGNING_KEY:?Set strong random signing key}
+    volumes: ["nowhere_data:/data"]
+    expose: ["8765"]
+    networks: [nowhere_private]
+  tailscale:
+    image: tailscale/tailscale:stable
+    hostname: nowhere-mcp
+    restart: unless-stopped
+    environment:
+      TS_USERSPACE: "true"
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_AUTH_ONCE: "true"
+    volumes: ["tailscale_data:/var/lib/tailscale"]
+    networks: [nowhere_private]
+    depends_on: [nowhere]
+    mem_limit: 256m
+volumes:
+  nowhere_data:
+  tailscale_data:
+networks:
+  nowhere_private:
+    driver: bridge
